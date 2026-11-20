@@ -1,0 +1,30 @@
+#!/bin/sh
+# Upload firmware to every attached HP LaserJet 1020 that lacks it. --force resends it.
+FW=/Library/Printers/HP-LJ1020/firmware/hp_laserjet_1020.fw
+USB=/usr/libexec/cups/backend/usb
+log() { echo "$(date '+%F %T') hplj1020: $*"; }
+list() { "$USB" 2>/dev/null | grep 'MDL:HP LaserJet 1020;'; }
+
+for try in 1 2 3 4 5 6 7 8 9 10; do
+    found=$(list) && break
+    sleep 1
+done
+[ -z "$found" ] && { log "no printer found"; exit 0; }
+
+echo "$found" | while read -r _ uri rest; do
+    case "$rest" in
+        *FWVER:*) [ "$1" != --force ] && { log "firmware already loaded on $uri"; continue; } ;;
+    esac
+    for attempt in 1 2 3; do
+        sleep 5
+        log "sending firmware to $uri (attempt $attempt)"
+        DEVICE_URI="$uri" "$USB" 1 root hplj1020-firmware 1 "" "$FW" >/dev/null 2>&1
+        log "backend exit $?"
+        for wait in 1 2 3 4 5 6 7 8 9 10; do
+            sleep 2
+            list | grep -q 'FWVER:' && { log "firmware loaded: $(list | grep -o 'FWVER:[0-9]*')"; exit 0; }
+        done
+        log "printer did not report FWVER: $(list)"
+    done
+    exit 1
+done

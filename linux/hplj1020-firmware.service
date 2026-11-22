@@ -1,0 +1,6 @@
+[Unit]
+Description=Load firmware into HP LaserJet 1020
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/hplj1020-firmware

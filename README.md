@@ -24,6 +24,27 @@ sudo make install     # installs everything and adds the "HP_LaserJet_1020" queu
 
 Options: page size (Letter, Legal, Executive, A4, A5, JIS B5, A6, #10, DL, C5, Monarch envelopes) and Toner Saver.
 
+## Linux
+
+The same filter builds against CUPS on Linux. A udev rule starts a systemd service that loads the firmware whenever the printer appears on USB.
+
+```sh
+sudo apt install build-essential libcups2-dev cups curl   # Debian, Ubuntu, Raspberry Pi OS
+make
+sudo make install
+```
+
+| Piece | Installed to |
+|---|---|
+| CUPS filter `rastertozjs` | `/usr/lib/cups/filter/` |
+| PPD | `/usr/share/ppd/hplj1020/` |
+| Firmware | `/usr/share/hplj1020/` |
+| Firmware loader | `/usr/local/sbin/hplj1020-firmware`, `/etc/systemd/system/hplj1020-firmware.service`, `/etc/udev/rules.d/90-hplj1020.rules` |
+
+Printing and firmware loading are verified on a Raspberry Pi 3B+ running Raspberry Pi OS Lite (Debian 13). To share the printer on your network, run `sudo cupsctl --share-printers` and `sudo lpadmin -p HP_LaserJet_1020 -o printer-is-shared=true`.
+
+The firmware log is `journalctl -u hplj1020-firmware`. `sudo /usr/local/sbin/hplj1020-firmware --force` resends the firmware.
+
 ## Printer status
 
 The filter reads the printer's PJL status replies and shows them in the macOS print queue: out of paper, paper jam, door open, no toner, low toner.

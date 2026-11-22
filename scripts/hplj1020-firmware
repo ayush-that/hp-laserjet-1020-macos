@@ -2,6 +2,7 @@
 # Upload firmware to every attached HP LaserJet 1020 that lacks it. --force resends it.
 FW=/Library/Printers/HP-LJ1020/firmware/hp_laserjet_1020.fw
 USB=/usr/libexec/cups/backend/usb
+[ "$(uname)" = Linux ] && FW=/usr/share/hplj1020/hp_laserjet_1020.fw USB=/usr/lib/cups/backend/usb
 log() { echo "$(date '+%F %T') hplj1020: $*"; }
 list() { "$USB" 2>/dev/null | grep 'MDL:HP LaserJet 1020;'; }
 
